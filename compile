@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
 # Author: GMolini
+set -e
+
+red='\033[0;31m'
+green='\033[0;32m'
+nc='\033[0m'
 
 msg() {
     msg="${1:-nothing}"
