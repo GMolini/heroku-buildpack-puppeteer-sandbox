@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# $1 ~> <build_dir>
+
+# Author: GMolini
+
+echo "Puppeteer sandbox buildpack"
