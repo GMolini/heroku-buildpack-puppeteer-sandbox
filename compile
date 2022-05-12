@@ -1,71 +1,13 @@
 #!/usr/bin/env bash
 
-# Author: GMolini (based on a buildpack from techgaun)
-
-set -e
-
-# Ensure wildcards in globs match dotfiles too.
-shopt -s dotglob
-
-red='\033[0;31m'
-green='\033[0;32m'
-nc='\033[0m'
-
-BUILD_DIR=$(cd "${1}" && pwd)
-CACHE_DIR=$(cd "${2}" && pwd)
-ENV_DIR=$(cd "${3}" && pwd)
-PROJECT_RELATIVE_PATH_FILE="${ENV_DIR}/PROJECT_RELATIVE_PATH"
-
-error() {
-    msg="${1}"
-    echo -e "${red}${msg}${nc}"
-}
-
-die() {
-  error "$@"
-  exit 1
-}
+# Author: GMolini
 
 msg() {
     msg="${1:-nothing}"
     echo -e "       ${green}${msg}${nc}"
 }
 
-
-[ -f "${PROJECT_RELATIVE_PATH_FILE}" ] || die "PROJECT_RELATIVE_PATH is not set"
-
-PROJECT_RELATIVE_PATH=$(cat "${PROJECT_RELATIVE_PATH_FILE}")
-PROJECT_PATH="${BUILD_DIR}/${PROJECT_RELATIVE_PATH}"
-PROJECT_NAME=$(basename "${PROJECT_PATH}")
-
-[ -d "${PROJECT_PATH}" ] || die "PROJECT_RELATIVE_PATH: ${PROJECT_RELATIVE_PATH} does not exist"
-
-mkdir -p "${CACHE_DIR}"
-
-msg "Creating temp directory"
-
-TMP_DIR=$(mktemp -d "${CACHE_DIR}/subrootXXXXX")
-msg "Created temp directory: ${TMP_DIR}"
-
-msg "Moving subdir: ${PROJECT_RELATIVE_PATH} to temp dir: ${TMP_DIR}"
-mv "${PROJECT_PATH}" "${TMP_DIR}"
-
-msg "Move extra dirs to temp dir"
-for i in $ENV_DIR/EXTRA_DIR_*; do
-    EXTRA_DIR_RELATIVE_PATH=$(cat "${i}")
-    EXTRA_DIR_PATH="${BUILD_DIR}/${EXTRA_DIR_RELATIVE_PATH}"
-    msg "Moving subdir: ${EXTRA_DIR_RELATIVE_PATH} to temp dir: ${TMP_DIR}"
-    mv "${EXTRA_DIR_PATH}" "${TMP_DIR}"
-done
-
-msg "Cleaning build directory"
-rm -rf "${BUILD_DIR}"/*
-
-msg "moving this files ${TMP_DIR}/${PROJECT_NAME}/*"
-msg "Moving project directory from ${TMP_DIR} to ${BUILD_DIR}"
-mv "${TMP_DIR}/${PROJECT_NAME}"/* "${BUILD_DIR}"
-mv "${TMP_DIR}/src_common" "${BUILD_DIR}"
-
-rm -rf "${TMP_DIR}"
+msg "Enable user namespace cloning"
+sudo sysctl -w kernel.unprivileged_userns_clone=1
 
 exit 0
